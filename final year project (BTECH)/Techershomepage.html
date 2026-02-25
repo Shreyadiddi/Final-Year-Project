@@ -1,0 +1,1411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teacher's Portal - Complete System</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: conic-gradient(from 45deg, rgb(139, 11, 132) 0deg, rgb(9, 90, 131) 90deg, rgb(168, 13, 90) 180deg, rgb(16, 93, 9) 270deg);;
+            color: #333;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+            padding: 30px;
+            margin-bottom: 20px;
+            transition: transform 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* Authentication Styles */
+        .auth-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .auth-card {
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .auth-title {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #2c3e50;
+            font-size: 2em;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #555;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-info {
+            background: #17a2b8;
+            color: white;
+        }
+
+        .btn-warning {
+            background: #ffc107;
+            color: #212529;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-full {
+            width: 100%;
+        }
+
+        /* Navigation Styles */
+        .navbar {
+            background: rgba(44, 62, 80, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 15px 0;
+            border-radius: 15px;
+            margin-bottom: 20px;
+        }
+
+        .nav-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 30px;
+        }
+
+        .nav-brand {
+            color: #ecf0f1;
+            font-size: 1.5em;
+            font-weight: bold;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 20px;
+        }
+
+        .nav-links a {
+            color: #ecf0f1;
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+
+        .nav-links a:hover, .nav-links a.active {
+            background-color: #3498db;
+        }
+
+        /* Dashboard Styles */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .dashboard-card {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+        }
+
+        .dashboard-card:hover {
+            transform: translateY(-10px);
+            border-color: #667eea;
+        }
+
+        .dashboard-card .icon {
+            font-size: 4em;
+            margin-bottom: 20px;
+        }
+
+        .dashboard-card h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+        }
+
+        /* File Upload Styles */
+        .upload-section {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 15px;
+            border: 2px dashed #dee2e6;
+            text-align: center;
+            margin-bottom: 30px;
+            transition: all 0.3s;
+        }
+
+        .upload-section:hover {
+            border-color: #667eea;
+            background: #f0f3ff;
+        }
+
+        .file-input {
+            margin: 20px 0;
+        }
+
+        .upload-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        /* Table Styles */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .data-table th {
+            background: #2c3e50;
+            color: white;
+            padding: 15px;
+            text-align: left;
+            font-weight: bold;
+        }
+
+        .data-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .data-table tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        .status-badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .status-good {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-average {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-poor {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        /* Chart Container */
+        .chart-container {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+        }
+
+        .chart-container canvas {
+            max-height: 400px;
+        }
+
+        /* Analysis Results */
+        .analysis-results {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .analysis-card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .analysis-card h3 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        .analysis-card .number {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        /* Recommendations */
+        .recommendations {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .recommendations h4 {
+            color: #856404;
+            margin-bottom: 15px;
+        }
+
+        .recommendations ul {
+            list-style: none;
+        }
+
+        .recommendations li {
+            padding: 8px 0;
+            border-bottom: 1px solid #ffeaa7;
+        }
+
+        .recommendations li:last-child {
+            border-bottom: none;
+        }
+
+        /* Alerts */
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .alert-info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        /* Loading Spinner */
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 50px;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+
+            .nav-content {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .nav-links {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+
+            .upload-buttons {
+                flex-direction: column;
+            }
+
+            .data-table {
+                font-size: 14px;
+            }
+
+            .data-table th,
+            .data-table td {
+                padding: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <!-- Authentication Section -->
+        <div id="auth-section" class="auth-container">
+            <div class="auth-card">
+                <h2 class="auth-title">Teacher's Portal</h2>
+                <div id="login-form">
+                    <h3 style="text-align: center; margin-bottom: 20px;">Login</h3>
+                    <div class="form-group">
+                        <label>Email:</label>
+                        <input type="email" id="login-email" placeholder="Enter your email">
+                    </div>
+                    <div class="form-group">
+                        <label>Password:</label>
+                        <input type="password" id="login-password" placeholder="Enter your password">
+                    </div>
+                    <button class="btn btn-primary btn-full" onclick="login()">Login</button>
+                    <p style="text-align: center; margin-top: 15px;">
+                        Don't have an account? <a href="#" onclick="showRegister()">Register here</a>
+                    </p>
+                </div>
+                
+                <div id="register-form" class="hidden">
+                    <h3 style="text-align: center; margin-bottom: 20px;">Register</h3>
+                    <div class="form-group">
+                        <label>Name:</label>
+                        <input type="text" id="register-name" placeholder="Enter your name">
+                    </div>
+                    <div class="form-group">
+                        <label>Email:</label>
+                        <input type="email" id="register-email" placeholder="Enter your email">
+                    </div>
+                    <div class="form-group">
+                        <label>Password:</label>
+                        <input type="password" id="register-password" placeholder="Enter your password">
+                    </div>
+                    <button class="btn btn-primary btn-full" onclick="register()">Register</button>
+                    <p style="text-align: center; margin-top: 15px;">
+                        Already have an account? <a href="#" onclick="showLogin()">Login here</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Application -->
+        <div id="main-app" class="hidden">
+            <div class="container">
+                <!-- Navigation -->
+                <nav class="navbar">
+                    <div class="nav-content">
+                        <div class="nav-brand">Teacher's Portal</div>
+                        <div class="nav-links">
+                            <a href="#" onclick="showDashboard()" class="nav-link active">Dashboard</a>
+                            <a href="#" onclick="showAttendance()" class="nav-link">Attendance</a>
+                            <a href="#" onclick="showMarks()" class="nav-link">Marks</a>
+                            <a href="#" onclick="showBehavior()" class="nav-link">Behavior</a>
+                            <button class="btn btn-danger" onclick="logout()">Logout</button>
+                        </div>
+                    </div>
+                </nav>
+
+                <!-- Dashboard Section -->
+                <div id="dashboard-section">
+                    <div class="card">
+                        <h1 style="text-align: center; margin-bottom: 30px; color: #2c3e50;">
+                            Welcome, <span id="teacher-name">Teacher</span>!
+                        </h1>
+                        <div class="dashboard-grid">
+                            <div class="dashboard-card" onclick="showAttendance()">
+                                <div class="icon">📊</div>
+                                <h3>Attendance Management</h3>
+                                <p>Track and analyze student attendance patterns with AI insights</p>
+                            </div>
+                            <div class="dashboard-card" onclick="showMarks()">
+                                <div class="icon">📝</div>
+                                <h3>Marks Management</h3>
+                                <p>Manage and analyze student academic performance with recommendations</p>
+                            </div>
+                            <div class="dashboard-card" onclick="showBehavior()">
+                                <div class="icon">🎯</div>
+                                <h3>Behavior Management</h3>
+                                <p>Monitor and track student behavior and discipline patterns</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Attendance Section -->
+                <div id="attendance-section" class="hidden">
+                    <div class="card">
+                        <h2>📊 Attendance Management</h2>
+                        <div class="upload-section">
+                            <h3>Upload Attendance Data</h3>
+                            <p>Upload an Excel file with student attendance information</p>
+                            <input type="file" id="attendance-file" class="file-input" accept=".xlsx,.xls">
+                            <div class="upload-buttons">
+                                <button class="btn btn-success" onclick="uploadAttendance()">Upload & Analyze</button>
+                                <button class="btn btn-info" onclick="downloadSampleAttendance()">Download Sample</button>
+                            </div>
+                        </div>
+                        
+                        <div id="attendance-analysis" class="hidden">
+                            <div class="analysis-results">
+                                <div class="analysis-card">
+                                    <h3>Total Students</h3>
+                                    <div class="number" id="attendance-total">0</div>
+                                </div>
+                                <div class="analysis-card">
+                                    <h3>Average Attendance</h3>
+                                    <div class="number" id="attendance-average">0%</div>
+                                </div>
+                                <div class="analysis-card">
+                                    <h3>Poor Performers</h3>
+                                    <div class="number" id="attendance-poor" style="color: #e74c3c;">0</div>
+                                </div>
+                                <div class="analysis-card">
+                                    <h3>Good Performers</h3>
+                                    <div class="number" id="attendance-good" style="color: #27ae60;">0</div>
+                                </div>
+                            </div>
+                            
+                            <div class="chart-container">
+                                <canvas id="attendanceChart"></canvas>
+                            </div>
+                        </div>
+                        
+                        <div id="attendance-table-container">
+                            <table class="data-table" id="attendance-table">
+                                <thead>
+                                    <tr>
+                                        <th>Student Name</th>
+                                        <th>Student ID</th>
+                                        <th>Total Classes</th>
+                                        <th>Attended</th>
+                                        <th>Percentage</th>
+                                        <th>Status</th>
+                                        <th>Recommendations</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="attendance-tbody">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Marks Section -->
+                <div id="marks-section" class="hidden">
+                    <div class="card">
+                        <h2>📝 Marks Management</h2>
+                        <div class="upload-section">
+                            <h3>Upload Marks Data</h3>
+                            <p>Upload an Excel file with student marks information</p>
+                            <input type="file" id="marks-file" class="file-input" accept=".xlsx,.xls">
+                            <div class="upload-buttons">
+                                <button class="btn btn-success" onclick="uploadMarks()">Upload & Analyze</button>
+                                <button class="btn btn-info" onclick="downloadSampleMarks()">Download Sample</button>
+                            </div>
+                        </div>
+                        
+                        <div id="marks-analysis" class="hidden">
+                            <div class="analysis-results">
+                                <div class="analysis-card">
+                                    <h3>Total Students</h3>
+                                    <div class="number" id="marks-total">0</div>
+                                </div>
+                                <div class="analysis-card">
+                                    <h3>Average Marks</h3>
+                                    <div class="number" id="marks-average">0%</div>
+                                </div>
+                                <div class="analysis-card">
+                                    <h3>Poor Performers</h3>
+                                    <div class="number" id="marks-poor" style="color: #e74c3c;">0</div>
+                                </div>
+                                <div class="analysis-card">
+                                    <h3>Good Performers</h3>
+                                    <div class="number" id="marks-good" style="color: #27ae60;">0</div>
+                                </div>
+                            </div>
+                            
+                            <div class="chart-container">
+                                <canvas id="marksChart"></canvas>
+                            </div>
+                        </div>
+                        
+                        <div id="marks-table-container">
+                            <table class="data-table" id="marks-table">
+                                <thead>
+                                    <tr>
+                                        <th>Student Name</th>
+                                        <th>Student ID</th>
+                                        <th>Subject</th>
+                                        <th>Marks</th>
+                                        <th>Total</th>
+                                        <th>Percentage</th>
+                                        <th>Status</th>
+                                        <th>Recommendations</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="marks-tbody">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Behavior Section -->
+                <div id="behavior-section" class="hidden">
+                    <div class="card">
+                        <h2>🎯 Behavior Management</h2>
+                        <div class="upload-section">
+                            <h3>Upload Behavior Data</h3>
+                            <p>Upload an Excel file with student behavior information</p>
+                            <input type="file" id="behavior-file" class="file-input" accept=".xlsx,.xls">
+                            <div class="upload-buttons">
+                                <button class="btn btn-success" onclick="uploadBehavior()">Upload & Analyze</button>
+                                <button class="btn btn-info" onclick="downloadSampleBehavior()">Download Sample</button>
+                            </div>
+                        </div>
+                        
+                        <div id="behavior-analysis" class="hidden">
+                            <div class="analysis-results">
+                                <div class="analysis-card">
+                                    <h3>Total Students</h3>
+                                    <div class="number" id="behavior-total">0</div>
+                                </div>
+                                <div class="analysis-card">
+                                    <h3>Average Score</h3>
+                                    <div class="number" id="behavior-average">0</div>
+                                </div>
+                                <div class="analysis-card">
+                                    <h3>Poor Behavior</h3>
+                                    <div class="number" id="behavior-poor" style="color: #e74c3c;">0</div>
+                                </div>
+                                <div class="analysis-card">
+                                    <h3>Good Behavior</h3>
+                                    <div class="number" id="behavior-good" style="color: #27ae60;">0</div>
+                                </div>
+                            </div>
+                            
+                            <div class="chart-container">
+                                <canvas id="behaviorChart"></canvas>
+                            </div>
+                        </div>
+                        
+                        <div id="behavior-table-container">
+                            <table class="data-table" id="behavior-table">
+                                <thead>
+                                    <tr>
+                                        <th>Student Name</th>
+                                        <th>Student ID</th>
+                                        <th>Behavior Rating</th>
+                                        <th>Discipline</th>
+                                        <th>Participation</th>
+                                        <th>Overall Score</th>
+                                        <th>Status</th>
+                                        <th>Recommendations</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="behavior-tbody">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global Variables
+        let currentUser = null;
+        let users = JSON.parse(localStorage.getItem('teachers')) || [];
+        let attendanceData = JSON.parse(localStorage.getItem('attendanceData')) || [];
+        let marksData = JSON.parse(localStorage.getItem('marksData')) || [];
+        let behaviorData = JSON.parse(localStorage.getItem('behaviorData')) || [];
+
+        // Authentication Functions
+        function showLogin() {
+            document.getElementById('login-form').classList.remove('hidden');
+            document.getElementById('register-form').classList.add('hidden');
+        }
+
+        function showRegister() {
+            document.getElementById('login-form').classList.add('hidden');
+            document.getElementById('register-form').classList.remove('hidden');
+        }
+
+        function register() {
+            const name = document.getElementById('register-name').value;
+            const email = document.getElementById('register-email').value;
+            const password = document.getElementById('register-password').value;
+
+            if (!name || !email || !password) {
+                showAlert('Please fill all fields', 'error');
+                return;
+            }
+
+            if (users.find(user => user.email === email)) {
+                showAlert('User already exists', 'error');
+                return;
+            }
+
+            const newUser = { id: Date.now(), name, email, password };
+            users.push(newUser);
+            localStorage.setItem('teachers', JSON.stringify(users));
+            
+            showAlert('Registration successful! Please login.', 'success');
+            showLogin();
+        }
+
+        function login() {
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+
+            if (!email || !password) {
+                showAlert('Please fill all fields', 'error');
+                return;
+            }
+
+            const user = users.find(u => u.email === email && u.password === password);
+            
+            if (user) {
+                currentUser = user;
+                document.getElementById('teacher-name').textContent = user.name;
+                document.getElementById('auth-section').classList.add('hidden');
+                document.getElementById('main-app').classList.remove('hidden');
+                showDashboard();
+                showAlert('Login successful!', 'success');
+            } else {
+                showAlert('Invalid credentials', 'error');
+            }
+        }
+
+        function logout() {
+            currentUser = null;
+            document.getElementById('auth-section').classList.remove('hidden');
+            document.getElementById('main-app').classList.add('hidden');
+            document.getElementById('login-email').value = '';
+            document.getElementById('login-password').value = '';
+            showLogin();
+        }
+
+        // Navigation Functions
+        function showDashboard() {
+            hideAllSections();
+            document.getElementById('dashboard-section').classList.remove('hidden');
+            setActiveNav(0);
+        }
+
+        function showAttendance() {
+            hideAllSections();
+            document.getElementById('attendance-section').classList.remove('hidden');
+            setActiveNav(1);
+            loadAttendanceData();
+        }
+
+        function showMarks() {
+            hideAllSections();
+            document.getElementById('marks-section').classList.remove('hidden');
+            setActiveNav(2);
+            loadMarksData();
+        }
+
+        function showBehavior() {
+            hideAllSections();
+            document.getElementById('behavior-section').classList.remove('hidden');
+            setActiveNav(3);
+            loadBehaviorData();
+        }
+
+        function hideAllSections() {
+            document.getElementById('dashboard-section').classList.add('hidden');
+            document.getElementById('attendance-section').classList.add('hidden');
+            document.getElementById('marks-section').classList.add('hidden');
+            document.getElementById('behavior-section').classList.add('hidden');
+        }
+
+        function setActiveNav(index) {
+            const navLinks = document.querySelectorAll('.nav-link');
+            navLinks.forEach(link => link.classList.remove('active'));
+            if (navLinks[index]) {
+                navLinks[index].classList.add('active');
+            }
+        }
+
+        // File Upload Functions
+        function uploadAttendance() {
+            const fileInput = document.getElementById('attendance-file');
+            const file = fileInput.files[0];
+            
+            if (!file) {
+                showAlert('Please select a file', 'error');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const sheetName = workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[sheetName];
+                    const jsonData = XLSX.utils.sheet_to_json(worksheet);
+                    
+                    processAttendanceData(jsonData);
+                    showAlert('Attendance data uploaded and analyzed successfully!', 'success');
+                } catch (error) {
+                    showAlert('Error processing file. Please check the format.', 'error');
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        function uploadMarks() {
+            const fileInput = document.getElementById('marks-file');
+            const file = fileInput.files[0];
+            
+            if (!file) {
+                showAlert('Please select a file', 'error');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const sheetName = workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[sheetName];
+                    const jsonData = XLSX.utils.sheet_to_json(worksheet);
+                    
+                    processMarksData(jsonData);
+                    showAlert('Marks data uploaded and analyzed successfully!', 'success');
+                } catch (error) {
+                    showAlert('Error processing file. Please check the format.', 'error');
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        function uploadBehavior() {
+            const fileInput = document.getElementById('behavior-file');
+            const file = fileInput.files[0];
+            
+            if (!file) {
+                showAlert('Please select a file', 'error');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const sheetName = workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[sheetName];
+                    const jsonData = XLSX.utils.sheet_to_json(worksheet);
+                    
+                    processBehaviorData(jsonData);
+                    showAlert('Behavior data uploaded and analyzed successfully!', 'success');
+                } catch (error) {
+                    showAlert('Error processing file. Please check the format.', 'error');
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        // Data Processing Functions
+        function processAttendanceData(rawData) {
+            const processedData = rawData.map(row => {
+                const attendancePercentage = (row['Attended Classes'] / row['Total Classes']) * 100;
+                let status = 'good';
+                let recommendations = [];
+
+                if (attendancePercentage < 50) {
+                    status = 'poor';
+                    recommendations = [
+                        'Immediate attention required for attendance',
+                        'Contact parents regarding frequent absences',
+                        'Consider creating an attendance improvement plan'
+                    ];
+                } else if (attendancePercentage < 75) {
+                    status = 'average';
+                    recommendations = [
+                        'Needs improvement in attendance',
+                        'Monitor attendance patterns',
+                        'Provide additional support if needed'
+                    ];
+                } else {
+                    recommendations = [
+                        'Maintain good attendance',
+                        'Excellent attendance record'
+                    ];
+                }
+
+                return {
+                    studentName: row['Student Name'],
+                    studentId: row['Student ID'],
+                    totalClasses: row['Total Classes'],
+                    attendedClasses: row['Attended Classes'],
+                    attendancePercentage: attendancePercentage,
+                    status: status,
+                    recommendations: recommendations,
+                    teacherId: currentUser.id
+                };
+            });
+
+            attendanceData = [...attendanceData, ...processedData];
+            localStorage.setItem('attendanceData', JSON.stringify(attendanceData));
+            
+            displayAttendanceAnalysis(processedData);
+            loadAttendanceData();
+        }
+
+        function processMarksData(rawData) {
+            const processedData = rawData.map(row => {
+                const percentage = (row['Marks Obtained'] / row['Total Marks']) * 100;
+                let status = 'good';
+                let recommendations = [];
+
+                if (percentage < 50) {
+                    status = 'poor';
+                    recommendations = [
+                        'Needs extra practice and support',
+                        'Consider additional tutoring',
+                        'Review study methods and materials'
+                    ];
+                } else if (percentage < 75) {
+                    status = 'average';
+                    recommendations = [
+                        'Good progress, aim for higher marks',
+                        'Focus on weak areas',
+                        'Regular practice recommended'
+                    ];
+                } else {
+                    recommendations = [
+                        'Excellent performance, keep it up!',
+                        'Consider advanced materials',
+                        'Help peer students if possible'
+                    ];
+                }
+
+                return {
+                    studentName: row['Student Name'],
+                    studentId: row['Student ID'],
+                    subject: row['Subject'],
+                    marks: row['Marks Obtained'],
+                    totalMarks: row['Total Marks'],
+                    percentage: percentage,
+                    status: status,
+                    recommendations: recommendations,
+                    teacherId: currentUser.id
+                };
+            });
+
+            marksData = [...marksData, ...processedData];
+            localStorage.setItem('marksData', JSON.stringify(marksData));
+            
+            displayMarksAnalysis(processedData);
+            loadMarksData();
+        }
+
+        function processBehaviorData(rawData) {
+            const processedData = rawData.map(row => {
+                const overallScore = (row['Behavior Rating'] + row['Discipline Score'] + row['Participation Score']) / 3;
+                let status = 'good';
+                let recommendations = [];
+
+                if (overallScore < 3) {
+                    status = 'poor';
+                    recommendations = [
+                        'Counseling required for behavior improvement',
+                        'Implement behavior intervention plan',
+                        'Regular monitoring needed'
+                    ];
+                } else if (overallScore < 4) {
+                    status = 'average';
+                    recommendations = [
+                        'Monitor behavior patterns',
+                        'Encourage positive behavior',
+                        'Provide guidance when needed'
+                    ];
+                } else {
+                    recommendations = [
+                        'Excellent behavior, positive role model',
+                        'Continue current approach',
+                        'Encourage leadership opportunities'
+                    ];
+                }
+
+                return {
+                    studentName: row['Student Name'],
+                    studentId: row['Student ID'],
+                    behaviorRating: row['Behavior Rating'],
+                    discipline: row['Discipline Score'],
+                    participation: row['Participation Score'],
+                    overallScore: overallScore,
+                    status: status,
+                    recommendations: recommendations,
+                    teacherId: currentUser.id
+                };
+            });
+
+            behaviorData = [...behaviorData, ...processedData];
+            localStorage.setItem('behaviorData', JSON.stringify(behaviorData));
+            
+            displayBehaviorAnalysis(processedData);
+            loadBehaviorData();
+        }
+
+        // Analysis Display Functions
+        function displayAttendanceAnalysis(data) {
+            const total = data.length;
+            const average = data.reduce((sum, item) => sum + item.attendancePercentage, 0) / total;
+            const poor = data.filter(item => item.status === 'poor').length;
+            const good = data.filter(item => item.status === 'good').length;
+
+            document.getElementById('attendance-total').textContent = total;
+            document.getElementById('attendance-average').textContent = average.toFixed(1) + '%';
+            document.getElementById('attendance-poor').textContent = poor;
+            document.getElementById('attendance-good').textContent = good;
+
+            document.getElementById('attendance-analysis').classList.remove('hidden');
+
+            // Create Chart
+            createAttendanceChart(data);
+        }
+
+        function displayMarksAnalysis(data) {
+            const total = data.length;
+            const average = data.reduce((sum, item) => sum + item.percentage, 0) / total;
+            const poor = data.filter(item => item.status === 'poor').length;
+            const good = data.filter(item => item.status === 'good').length;
+
+            document.getElementById('marks-total').textContent = total;
+            document.getElementById('marks-average').textContent = average.toFixed(1) + '%';
+            document.getElementById('marks-poor').textContent = poor;
+            document.getElementById('marks-good').textContent = good;
+
+            document.getElementById('marks-analysis').classList.remove('hidden');
+
+            // Create Chart
+            createMarksChart(data);
+        }
+
+        function displayBehaviorAnalysis(data) {
+            const total = data.length;
+            const average = data.reduce((sum, item) => sum + item.overallScore, 0) / total;
+            const poor = data.filter(item => item.status === 'poor').length;
+            const good = data.filter(item => item.status === 'good').length;
+
+            document.getElementById('behavior-total').textContent = total;
+            document.getElementById('behavior-average').textContent = average.toFixed(1);
+            document.getElementById('behavior-poor').textContent = poor;
+            document.getElementById('behavior-good').textContent = good;
+
+            document.getElementById('behavior-analysis').classList.remove('hidden');
+
+            // Create Chart
+            createBehaviorChart(data);
+        }
+
+        // Chart Creation Functions
+        function createAttendanceChart(data) {
+            const ctx = document.getElementById('attendanceChart').getContext('2d');
+            
+            // Destroy existing chart if it exists
+            if (window.attendanceChartInstance) {
+                window.attendanceChartInstance.destroy();
+            }
+
+            const statusCounts = {
+                good: data.filter(item => item.status === 'good').length,
+                average: data.filter(item => item.status === 'average').length,
+                poor: data.filter(item => item.status === 'poor').length
+            };
+
+            window.attendanceChartInstance = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Good (>75%)', 'Average (50-75%)', 'Poor (<50%)'],
+                    datasets: [{
+                        data: [statusCounts.good, statusCounts.average, statusCounts.poor],
+                        backgroundColor: ['#27ae60', '#f39c12', '#e74c3c'],
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Attendance Status Distribution'
+                        },
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+        }
+
+        function createMarksChart(data) {
+            const ctx = document.getElementById('marksChart').getContext('2d');
+            
+            if (window.marksChartInstance) {
+                window.marksChartInstance.destroy();
+            }
+
+            const statusCounts = {
+                good: data.filter(item => item.status === 'good').length,
+                average: data.filter(item => item.status === 'average').length,
+                poor: data.filter(item => item.status === 'poor').length
+            };
+
+            window.marksChartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Good (>75%)', 'Average (50-75%)', 'Poor (<50%)'],
+                    datasets: [{
+                        label: 'Number of Students',
+                        data: [statusCounts.good, statusCounts.average, statusCounts.poor],
+                        backgroundColor: ['#27ae60', '#f39c12', '#e74c3c'],
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Marks Performance Distribution'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+
+        function createBehaviorChart(data) {
+            const ctx = document.getElementById('behaviorChart').getContext('2d');
+            
+            if (window.behaviorChartInstance) {
+                window.behaviorChartInstance.destroy();
+            }
+
+            const statusCounts = {
+                good: data.filter(item => item.status === 'good').length,
+                average: data.filter(item => item.status === 'average').length,
+                poor: data.filter(item => item.status === 'poor').length
+            };
+
+            window.behaviorChartInstance = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: ['Good (>4)', 'Average (3-4)', 'Poor (<3)'],
+                    datasets: [{
+                        data: [statusCounts.good, statusCounts.average, statusCounts.poor],
+                        backgroundColor: ['#27ae60', '#f39c12', '#e74c3c'],
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Behavior Status Distribution'
+                        },
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+        }
+
+        // Data Loading Functions
+        function loadAttendanceData() {
+            const userAttendanceData = attendanceData.filter(item => item.teacherId === currentUser.id);
+            const tbody = document.getElementById('attendance-tbody');
+            tbody.innerHTML = '';
+
+            userAttendanceData.forEach(student => {
+                const row = tbody.insertRow();
+                row.innerHTML = `
+                    <td>${student.studentName}</td>
+                    <td>${student.studentId}</td>
+                    <td>${student.totalClasses}</td>
+                    <td>${student.attendedClasses}</td>
+                    <td>${student.attendancePercentage.toFixed(1)}%</td>
+                    <td><span class="status-badge status-${student.status}">
+                        ${student.status === 'good' ? '✅' : student.status === 'average' ? '🟡' : '🔴'}
+                        ${student.status.charAt(0).toUpperCase() + student.status.slice(1)}
+                    </span></td>
+                    <td>${student.recommendations.join(', ')}</td>
+                `;
+                
+                if (student.status === 'poor') {
+                    row.style.backgroundColor = '#ffebee';
+                } else if (student.status === 'average') {
+                    row.style.backgroundColor = '#fff8e1';
+                } else {
+                    row.style.backgroundColor = '#e8f5e8';
+                }
+            });
+        }
+
+        function loadMarksData() {
+            const userMarksData = marksData.filter(item => item.teacherId === currentUser.id);
+            const tbody = document.getElementById('marks-tbody');
+            tbody.innerHTML = '';
+
+            userMarksData.forEach(student => {
+                const row = tbody.insertRow();
+                row.innerHTML = `
+                    <td>${student.studentName}</td>
+                    <td>${student.studentId}</td>
+                    <td>${student.subject}</td>
+                    <td>${student.marks}</td>
+                    <td>${student.totalMarks}</td>
+                    <td>${student.percentage.toFixed(1)}%</td>
+                    <td><span class="status-badge status-${student.status}">
+                        ${student.status === 'good' ? '✅' : student.status === 'average' ? '🟡' : '🔴'}
+                        ${student.status.charAt(0).toUpperCase() + student.status.slice(1)}
+                    </span></td>
+                    <td>${student.recommendations.join(', ')}</td>
+                `;
+                
+                if (student.status === 'poor') {
+                    row.style.backgroundColor = '#ffebee';
+                } else if (student.status === 'average') {
+                    row.style.backgroundColor = '#fff8e1';
+                } else {
+                    row.style.backgroundColor = '#e8f5e8';
+                }
+            });
+        }
+
+        function loadBehaviorData() {
+            const userBehaviorData = behaviorData.filter(item => item.teacherId === currentUser.id);
+            const tbody = document.getElementById('behavior-tbody');
+            tbody.innerHTML = '';
+
+            userBehaviorData.forEach(student => {
+                const row = tbody.insertRow();
+                row.innerHTML = `
+                    <td>${student.studentName}</td>
+                    <td>${student.studentId}</td>
+                    <td>${student.behaviorRating}</td>
+                    <td>${student.discipline}</td>
+                    <td>${student.participation}</td>
+                    <td>${student.overallScore.toFixed(1)}</td>
+                    <td><span class="status-badge status-${student.status}">
+                        ${student.status === 'good' ? '✅' : student.status === 'average' ? '🟡' : '🔴'}
+                        ${student.status.charAt(0).toUpperCase() + student.status.slice(1)}
+                    </span></td>
+                    <td>${student.recommendations.join(', ')}</td>
+                `;
+                
+                if (student.status === 'poor') {
+                    row.style.backgroundColor = '#ffebee';
+                } else if (student.status === 'average') {
+                    row.style.backgroundColor = '#fff8e1';
+                } else {
+                    row.style.backgroundColor = '#e8f5e8';
+                }
+            });
+        }
+
+        // Sample File Download Functions
+        function downloadSampleAttendance() {
+            const sampleData = [
+                ['Student Name', 'Student ID', 'Total Classes', 'Attended Classes'],
+                ['John Doe', 'ST001', 100, 85],
+                ['Jane Smith', 'ST002', 100, 92],
+                ['Bob Johnson', 'ST003', 100, 45],
+                ['Alice Brown', 'ST004', 100, 78],
+                ['Charlie Wilson', 'ST005', 100, 95]
+            ];
+            
+            downloadExcel(sampleData, 'attendance_sample.xlsx');
+        }
+
+        function downloadSampleMarks() {
+            const sampleData = [
+                ['Student Name', 'Student ID', 'Subject', 'Marks Obtained', 'Total Marks'],
+                ['John Doe', 'ST001', 'Mathematics', 85, 100],
+                ['Jane Smith', 'ST002', 'Mathematics', 92, 100],
+                ['Bob Johnson', 'ST003', 'Mathematics', 45, 100],
+                ['Alice Brown', 'ST004', 'Mathematics', 78, 100],
+                ['Charlie Wilson', 'ST005', 'Mathematics', 95, 100]
+            ];
+            
+            downloadExcel(sampleData, 'marks_sample.xlsx');
+        }
+
+        function downloadSampleBehavior() {
+            const sampleData = [
+                ['Student Name', 'Student ID', 'Behavior Rating', 'Discipline Score', 'Participation Score'],
+                ['John Doe', 'ST001', 4, 4, 3],
+                ['Jane Smith', 'ST002', 5, 5, 5],
+                ['Bob Johnson', 'ST003', 2, 2, 2],
+                ['Alice Brown', 'ST004', 4, 3, 4],
+                ['Charlie Wilson', 'ST005', 5, 4, 5]
+            ];
+            
+            downloadExcel(sampleData, 'behavior_sample.xlsx');
+        }
+
+        function downloadExcel(data, filename) {
+            const ws = XLSX.utils.aoa_to_sheet(data);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
+            XLSX.writeFile(wb, filename);
+        }
+
+        // Utility Functions
+        function showAlert(message, type) {
+            // Remove existing alerts
+            const existingAlert = document.querySelector('.alert');
+            if (existingAlert) {
+                existingAlert.remove();
+            }
+
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type}`;
+            alert.textContent = message;
+            
+            const container = document.querySelector('.container') || document.body;
+            container.insertBefore(alert, container.firstChild);
+            
+            setTimeout(() => {
+                alert.remove();
+            }, 5000);
+        }
+
+        // Initialize Application
+        document.addEventListener('DOMContentLoaded', function() {
+            // Create demo users if none exist
+            if (users.length === 0) {
+                users.push({
+                    id: 1,
+                    name: 'Demo Teacher',
+                    email: 'demo@teacher.com',
+                    password: 'demo123'
+                });
+                localStorage.setItem('teachers', JSON.stringify(users));
+            }
+            
+            showLogin();
+        });
+
+        // Add Enter key support for forms
+        document.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                if (!document.getElementById('auth-section').classList.contains('hidden')) {
+                    if (!document.getElementById('login-form').classList.contains('hidden')) {
+                        login();
+                    } else if (!document.getElementById('register-form').classList.contains('hidden')) {
+                        register();
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>

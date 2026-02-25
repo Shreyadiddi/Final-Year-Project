@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Student Management</title>
+  <link rel="stylesheet" href="Techersportal.css">
+  <style>
+    .record {
+      background: rgba(255, 255, 255, 0.2);
+      padding: 8px;
+      margin: 5px 0;
+      border-radius: 5px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .record span {
+      flex: 1;
+    }
+
+    .record button {
+      margin-left: 10px;
+      padding: 5px 8px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .delete-btn {
+      background: #e74c3c;
+      color: white;
+    }
+
+    .update-btn {
+      background: #f1c40f;
+      color: black;
+    }
+  </style>
+</head>
+
+<body>
+  <h1>Teacher's Management Portal</h1>
+  <!-- Attendance Section -->
+  <section id="attendance" class="section card">
+    <center>
+      <h2>Attendance</h2>
+    </center>
+    <form id="attendance-form">
+      <label for="roll-attendance">Roll No:</label>
+      <input type="text" id="roll-attendance" placeholder="Enter roll no" required>
+
+      <label for="student-name">Student Name:</label>
+      <input type="text" id="student-name" placeholder="Enter student name" required>
+
+      <label>Mark Attendance:</label>
+      <select id="attendance-status" required>
+        <option value="">--Select--</option>
+        <option value="Present">Present</option>
+        <option value="Absent">Absent</option>
+      </select>
+
+      <button type="submit">Save</button>
+    </form>
+    <div id="attendance-records"></div>
+  </section>
+
+  <!-- Marks Section -->
+  <section id="marks" class="section card">
+    <center>
+      <h2>Marks</h2>
+    </center>
+    <div class="card">
+    <form id="marks-form">
+      <label for="roll-marks">Roll No:</label>
+      <input type="text" id="roll-marks" placeholder="Enter roll no" required>
+
+      <label for="marks-student">Student Name:</label>
+      <input type="text" id="marks-student" placeholder="Enter student name" required>
+
+      <label for="marks-value">Marks:</label>
+      <input type="number" id="marks-value" placeholder="Enter marks" required>
+
+      <button type="submit">Save</button>
+    </form>
+    <div id="marks-records"></div>
+    </div>
+  </section>
+
+  <!-- Behavior Section -->
+  <section id="behavior" class="section card">
+    <center>
+      <h2>Behavior</h2>
+    </center>
+    <div class="card">
+    <form id="behavior-form">
+      <label for="roll-behavior">Roll No:</label>
+      <input type="text" id="roll-behavior" placeholder="Enter roll no" required>
+
+      <label for="behavior-student">Student Name:</label>
+      <input type="text" id="behavior-student" placeholder="Enter student name" required>
+
+      <!-- Behavior Dropdown -->
+      <label for="behavior">Behavior:</label>
+      <select id="behavior" name="behavior" required>
+        <option value="">-- Select Behavior --</option>
+        <option value="good">Good</option>
+        <option value="very_good">Very Good</option>
+        <option value="excellent">Excellent</option>
+        <option value="bad">Bad</option>
+        <option value="worst">Worst</option>
+      </select>
+      <br><br>
+      <label for="behavior-note">Additional Notes:</label>
+      <input type="text" id="behavior-note" placeholder="Enter notes (optional)">
+      <br><br>
+      <button type="submit">Save</button>
+    </form>
+    <div id="behavior-records"></div>
+    </div>
+  </section>
+
+  <script>
+    // Helper function for record display
+    function createRecord(content, containerId) {
+      const container = document.getElementById(containerId);
+      const record = document.createElement("div");
+      record.classList.add("record");
+
+      const text = document.createElement("span");
+      text.innerHTML = content;
+
+      const deleteBtn = document.createElement("button");
+      deleteBtn.innerText = "Delete";
+      deleteBtn.classList.add("delete-btn");
+      deleteBtn.onclick = () => record.remove();
+
+      const updateBtn = document.createElement("button");
+      updateBtn.innerText = "Update";
+      updateBtn.classList.add("update-btn");
+      updateBtn.onclick = () => {
+        const updatedValue = prompt("Edit record:", text.innerHTML);
+        if (updatedValue) text.innerHTML = updatedValue;
+      };
+
+      record.appendChild(text);
+      record.appendChild(updateBtn);
+      record.appendChild(deleteBtn);
+      container.appendChild(record);
+    }
+
+    // Attendance
+    document.getElementById("attendance-form").addEventListener("submit", function (event) {
+      event.preventDefault();
+      let roll = document.getElementById("roll-attendance").value;
+      let name = document.getElementById("student-name").value;
+      let status = document.getElementById("attendance-status").value;
+      createRecord(`Roll No: ${roll} | ${name}: ${status}`, "attendance-records");
+      this.reset();
+    });
+
+    // Marks
+    document.getElementById("marks-form").addEventListener("submit", function (event) {
+      event.preventDefault();
+      let roll = document.getElementById("roll-marks").value;
+      let name = document.getElementById("marks-student").value;
+      let marks = document.getElementById("marks-value").value;
+      createRecord(`Roll No: ${roll} | ${name}: ${marks} marks`, "marks-records");
+      this.reset();
+    });
+
+    // Behavior
+    document.getElementById("behavior-form").addEventListener("submit", function (event) {
+      event.preventDefault();
+      let roll = document.getElementById("roll-behavior").value;
+      let name = document.getElementById("behavior-student").value;
+      let note = document.getElementById("behavior-note").value;
+      createRecord(`Roll No: ${roll} | ${name}: ${note}`, "behavior-records");
+      this.reset();
+    });
+  </script>
+</body>
+
+</html>

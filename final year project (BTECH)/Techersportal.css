@@ -1,0 +1,134 @@
+/* General Styles */
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  background: linear-gradient(to right, #6a11cb, #2575fc);
+  color: #fff;
+}
+
+header {
+  text-align: center;
+  padding: 15px;
+  background: rgba(0, 0, 0, 0.3);
+}
+
+header h1 {
+  margin: 0;
+  font-size: 22px;
+}
+
+nav ul {
+  list-style: none;
+  padding: 0;
+  margin: 10px 0 0;
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+}
+
+nav ul li a {
+  text-decoration: none;
+  color: #fff;
+  font-size: 14px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.2);
+  transition: background 0.3s;
+}
+
+nav ul li a:hover {
+  background: rgba(255, 255, 255, 0.4);
+}
+
+/* Form Sections */
+.form-section {
+  max-width: 350px;
+  margin: 20px auto;
+  padding: 15px;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 12px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+}
+
+.form-section h2 {
+  font-size: 18px;
+  margin-bottom: 10px;
+  text-align: center;
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+label {
+  font-size: 13px;
+}
+
+input, select {
+  padding: 6px;
+  font-size: 13px;
+  border: none;
+  border-radius: 6px;
+}
+
+button {
+  padding: 8px;
+  font-size: 14px;
+  background: #ff7f50;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  margin-top: 5px;
+}
+
+button:hover {
+  background: #ff5722;
+}
+/* Make form elements smaller */
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: center; /* Center inputs */
+}
+
+input, select, button {
+  width: 70%;           /* Reduce width */
+  max-width: 300px;     /* Limit max size */
+  padding: 6px;         /* Reduce padding */
+  font-size: 14px;      /* Smaller text */
+  border-radius: 6px;
+  border: none;
+  box-sizing: border-box;
+}
+
+/* Compact button */
+button {
+  background: #ff7f50;
+  color: white;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+button:hover {
+  background: #ff5722;
+}
+/* Card design */
+.card {
+  background: #302f2f;         /* white card */
+  padding: 20px;
+  margin: 20px auto;
+  border-radius: 10px;
+  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.15);
+  max-width: 400px;           /* keep it compact */
+  text-align: center;
+}
+.card h3 {
+  margin-top: 0;
+  color: #2575fc;
+}
+

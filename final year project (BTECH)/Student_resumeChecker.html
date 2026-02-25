@@ -1,0 +1,1064 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resume Scanner - ATS Score Checker</title>
+    
+    <!-- Required Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.9.179/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.4.2/mammoth.browser.min.js"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .upload-section {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+        }
+
+        .upload-section h1 {
+            color: white;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+
+        .upload-section p {
+            color: rgba(255, 255, 255, 0.8);
+            margin-bottom: 20px;
+        }
+
+        .file-input-container {
+            position: relative;
+            display: inline-block;
+            margin: 20px 0;
+        }
+
+        #resumeFile {
+            position: absolute;
+            left: -9999px;
+        }
+
+        .file-input-label {
+            display: inline-block;
+            padding: 12px 25px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 25px;
+            cursor: pointer;
+            color: #333;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .file-input-label:hover {
+            background: white;
+            transform: translateY(-2px);
+        }
+
+        .file-name {
+            color: white;
+            margin: 10px 0;
+            font-style: italic;
+        }
+
+        #uploadButton {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 18px;
+            border-radius: 25px;
+            cursor: pointer;
+            margin: 20px 0;
+            transition: transform 0.3s ease;
+            font-weight: 600;
+        }
+
+        #uploadButton:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 107, 107, 0.4);
+        }
+
+        #uploadButton:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .loading {
+            display: none;
+            color: white;
+            margin: 20px 0;
+        }
+
+        .spinner {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid white;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .results-container {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+            display: none;
+            animation: slideIn 0.5s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .score-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .score-header h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 2.2em;
+        }
+
+        .main-score {
+            display: flex;
+            align-items: baseline;
+            justify-content: center;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .score-number {
+            font-size: 4em;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .score-text {
+            font-size: 2em;
+            color: #666;
+            margin-right: 20px;
+        }
+
+        .grade {
+            font-size: 2em;
+            font-weight: bold;
+            padding: 10px 20px;
+            border-radius: 25px;
+            color: white;
+        }
+
+        .grade.a\+ , .grade.a { background: #27ae60; }
+        .grade.b { background: #f39c12; }
+        .grade.c { background: #e67e22; }
+        .grade.d { background: #e74c3c; }
+        .grade.f { background: #c0392b; }
+
+        .score-breakdown {
+            margin-bottom: 30px;
+        }
+
+        .score-breakdown h3 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+        }
+
+        .score-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .score-item span:first-child {
+            min-width: 120px;
+            text-align: left;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .score-bar {
+            flex: 1;
+            height: 25px;
+            background: #ecf0f1;
+            border-radius: 15px;
+            position: relative;
+            margin: 0 15px;
+            overflow: hidden;
+        }
+
+        .score-fill {
+            height: 100%;
+            background: linear-gradient(45deg, #3498db, #2ecc71);
+            border-radius: 15px;
+            transition: width 1s ease;
+            position: relative;
+        }
+
+        .score-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+            animation: shimmer 2s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        .score-value {
+            min-width: 60px;
+            text-align: right;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .details-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .detail-card {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 25px;
+            border-radius: 15px;
+            border-left: 5px solid #3498db;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .detail-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .detail-card h4 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+
+        .skills-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .skill {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 500;
+            transition: transform 0.2s ease;
+        }
+
+        .skill:hover {
+            transform: scale(1.05);
+        }
+
+        .skill.matched {
+            background: #d4edda;
+            color: #155724;
+            border: 2px solid #c3e6cb;
+        }
+
+        .skill.missing {
+            background: #f8d7da;
+            color: #721c24;
+            border: 2px solid #f5c6cb;
+        }
+
+        .recommendations {
+            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+            padding: 25px;
+            border-radius: 15px;
+            border-left: 5px solid #2196f3;
+            box-shadow: 0 4px 15px rgba(33, 150, 243, 0.2);
+        }
+
+        .recommendations h3 {
+            color: #1976d2;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+        }
+
+        .recommendations ul {
+            list-style: none;
+        }
+
+        .recommendations li {
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(25, 118, 210, 0.1);
+            color: #333;
+            line-height: 1.5;
+        }
+
+        .recommendations li:before {
+            content: "💡 ";
+            margin-right: 10px;
+            font-size: 1.2em;
+        }
+
+        .recommendations li:last-child {
+            border-bottom: none;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .stat-item {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .stat-value {
+            font-size: 2em;
+            font-weight: bold;
+            color: #3498db;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            
+            .upload-section {
+                padding: 20px;
+            }
+            
+            .upload-section h1 {
+                font-size: 2em;
+            }
+            
+            .details-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .main-score {
+                flex-direction: column;
+                align-items: center;
+                gap: 10px;
+            }
+            
+            .score-number {
+                font-size: 3em;
+            }
+            
+            .score-item {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 10px;
+            }
+            
+            .score-bar {
+                margin: 10px 0;
+            }
+        }
+
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 10px;
+            border-left: 5px solid #dc3545;
+            margin: 20px 0;
+            display: none;
+        }
+
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 10px;
+            border-left: 5px solid #28a745;
+            margin: 20px 0;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Upload Section -->
+        <div class="upload-section">
+            <h1>📄 Resume Scanner</h1>
+            <p>Get your ATS compatibility score and improve your resume</p>
+            <p><strong>Choose Resume (PDF/DOCX/TXT):</strong></p>
+            
+            <div class="file-input-container">
+                <input type="file" id="resumeFile" accept=".pdf,.docx,.txt" />
+                <label for="resumeFile" class="file-input-label">
+                    📁 Choose File
+                </label>
+            </div>
+            
+            <div class="file-name" id="fileName"></div>
+            
+            <button id="uploadButton">🚀 Analyze Resume</button>
+            
+            <p>Your resume will be analyzed for skills, experience, and ATS compatibility.</p>
+            
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>Analyzing your resume... Please wait.</p>
+            </div>
+            
+            <div class="error-message" id="errorMessage"></div>
+            <div class="success-message" id="successMessage"></div>
+        </div>
+        
+        <!-- Results Section -->
+        <div class="results-container" id="results">
+            <!-- Results will be populated here -->
+        </div>
+    </div>
+
+    <script>
+        // Resume Scanner Class
+        class ResumeScanner {
+            constructor() {
+                this.skillsDatabase = [
+                    'python', 'java', 'javascript', 'react', 'angular', 'node.js', 'vue.js',
+                    'typescript', 'php', 'ruby', 'c#', 'c++', 'swift', 'kotlin', 'go',
+                    'machine learning', 'artificial intelligence', 'data science', 'deep learning',
+                    'sql', 'mongodb', 'mysql', 'postgresql', 'redis', 'elasticsearch',
+                    'aws', 'azure', 'gcp', 'docker', 'kubernetes', 'jenkins', 'git', 'github',
+                    'html', 'css', 'bootstrap', 'tailwind', 'sass', 'less', 'webpack',
+                    'tensorflow', 'pytorch', 'scikit-learn', 'pandas', 'numpy', 'matplotlib',
+                    'express.js', 'spring', 'django', 'flask', 'laravel', 'rails',
+                    'photoshop', 'illustrator', 'figma', 'sketch', 'adobe xd', 'canva',
+                    'project management', 'agile', 'scrum', 'kanban', 'jira', 'confluence',
+                    'communication', 'leadership', 'problem solving', 'analytical thinking',
+                    'teamwork', 'creativity', 'time management', 'critical thinking',
+                    'rest api', 'graphql', 'microservices', 'devops', 'ci/cd', 'testing',
+                    'selenium', 'cypress', 'jest', 'mocha', 'firebase', 'heroku'
+                ];
+                
+                this.educationKeywords = [
+                    'bachelor', 'master', 'phd', 'degree', 'university', 'college',
+                    'institute', 'certification', 'diploma', 'b.tech', 'm.tech',
+                    'mba', 'bca', 'mca', 'be', 'me', 'ms', 'bs', 'graduate'
+                ];
+                
+                this.experiencePatterns = [
+                    /(\d+)\+?\s*years?\s*of\s*experience/gi,
+                    /(\d+)\+?\s*years?\s*experience/gi,
+                    /experience\s*:?\s*(\d+)\+?\s*years?/gi,
+                    /(\d+)\+?\s*yr\s*exp/gi,
+                    /(\d+)\+?\s*yrs?\s*exp/gi,
+                    /(\d+)\+?\s*years?\s*in/gi
+                ];
+            }
+
+            async extractTextFromPDF(file) {
+                return new Promise((resolve, reject) => {
+                    const fileReader = new FileReader();
+                    fileReader.onload = async function() {
+                        try {
+                            const typedArray = new Uint8Array(this.result);
+                            const pdf = await pdfjsLib.getDocument(typedArray).promise;
+                            let fullText = '';
+                            
+                            for (let i = 1; i <= pdf.numPages; i++) {
+                                const page = await pdf.getPage(i);
+                                const textContent = await page.getTextContent();
+                                const pageText = textContent.items.map(item => item.str).join(' ');
+                                fullText += pageText + ' ';
+                            }
+                            
+                            resolve(fullText);
+                        } catch (error) {
+                            reject(new Error('Failed to extract text from PDF: ' + error.message));
+                        }
+                    };
+                    fileReader.onerror = () => reject(new Error('Failed to read PDF file'));
+                    fileReader.readAsArrayBuffer(file);
+                });
+            }
+
+            async extractTextFromDOCX(file) {
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = async function(e) {
+                        try {
+                            const arrayBuffer = e.target.result;
+                            const result = await mammoth.extractRawText({arrayBuffer: arrayBuffer});
+                            resolve(result.value);
+                        } catch (error) {
+                            reject(new Error('Failed to extract text from DOCX: ' + error.message));
+                        }
+                    };
+                    reader.onerror = () => reject(new Error('Failed to read DOCX file'));
+                    reader.readAsArrayBuffer(file);
+                });
+            }
+
+            async extractTextFromTXT(file) {
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        resolve(e.target.result);
+                    };
+                    reader.onerror = () => reject(new Error('Failed to read TXT file'));
+                    reader.readAsText(file);
+                });
+            }
+
+            async extractTextFromFile(file) {
+                const fileName = file.name.toLowerCase();
+                
+                if (fileName.endsWith('.pdf')) {
+                    return await this.extractTextFromPDF(file);
+                } else if (fileName.endsWith('.docx')) {
+                    return await this.extractTextFromDOCX(file);
+                } else if (fileName.endsWith('.txt')) {
+                    return await this.extractTextFromTXT(file);
+                } else {
+                    throw new Error('Unsupported file format. Please upload PDF, DOCX, or TXT files.');
+                }
+            }
+
+            extractSkills(text) {
+                const textLower = text.toLowerCase();
+                const foundSkills = [];
+                
+                this.skillsDatabase.forEach(skill => {
+                    const skillLower = skill.toLowerCase();
+                    if (textLower.includes(skillLower)) {
+                        // More precise matching for better accuracy
+                        const regex = new RegExp('\\b' + skillLower.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b', 'i');
+                        if (regex.test(textLower)) {
+                            foundSkills.push(skill);
+                        }
+                    }
+                });
+                
+                return [...new Set(foundSkills)];
+            }
+
+            extractExperienceYears(text) {
+                let maxYears = 0;
+                
+                this.experiencePatterns.forEach(pattern => {
+                    const matches = [...text.matchAll(pattern)];
+                    matches.forEach(match => {
+                        const years = parseInt(match[1]);
+                        if (years && years > maxYears && years <= 50) { // Reasonable upper limit
+                            maxYears = years;
+                        }
+                    });
+                });
+                
+                return maxYears;
+            }
+
+            extractEducation(text) {
+                const textLower = text.toLowerCase();
+                const foundEducation = [];
+                
+                this.educationKeywords.forEach(keyword => {
+                    if (textLower.includes(keyword)) {
+                        foundEducation.push(keyword);
+                    }
+                });
+                
+                return [...new Set(foundEducation)];
+            }
+
+            extractContactInfo(text) {
+                const emailPattern = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g;
+                const phonePattern = /(\+\d{1,3}[-.\s]?)?\(?\d{3,4}\)?[-.\s]?\d{3,4}[-.\s]?\d{3,4}/g;
+                
+                const emails = text.match(emailPattern) || [];
+                const phones = text.match(phonePattern) || [];
+                
+                return {
+                    emails: [...new Set(emails)],
+                    phones: [...new Set(phones)]
+                };
+            }
+
+            calculateKeywordDensity(text, keywords) {
+                const words = text.toLowerCase().split(/\s+/);
+                const totalWords = words.length;
+                let keywordCount = 0;
+                
+                keywords.forEach(keyword => {
+                    const keywordWords = keyword.toLowerCase().split(/\s+/);
+                    keywordWords.forEach(word => {
+                        keywordCount += words.filter(w => w.includes(word)).length;
+                    });
+                });
+                
+                return totalWords > 0 ? (keywordCount / totalWords) * 100 : 0;
+            }
+
+            calculateATSScore(resumeText, jobRequirements = {}) {
+                const resumeSkills = this.extractSkills(resumeText);
+                const requiredSkills = jobRequirements.skills || ['python', 'javascript', 'react', 'node.js', 'sql'];
+                const experienceYears = this.extractExperienceYears(resumeText);
+                const requiredExperience = jobRequirements.experience_years || 2;
+                const education = this.extractEducation(resumeText);
+                const contactInfo = this.extractContactInfo(resumeText);
+                
+                // Skills matching score (0-50 points)
+                let skillsScore = 0;
+                let matchedSkills = [];
+                let missingSkills = [];
+                
+                if (requiredSkills.length > 0) {
+                    matchedSkills = resumeSkills.filter(skill => 
+                        requiredSkills.some(reqSkill => 
+                            skill.toLowerCase().includes(reqSkill.toLowerCase()) ||
+                            reqSkill.toLowerCase().includes(skill.toLowerCase())
+                        )
+                    );
+                    missingSkills = requiredSkills.filter(reqSkill =>
+                        !resumeSkills.some(skill =>
+                            skill.toLowerCase().includes(reqSkill.toLowerCase()) ||
+                            reqSkill.toLowerCase().includes(skill.toLowerCase())
+                        )
+                    );
+                    skillsScore = (matchedSkills.length / requiredSkills.length) * 50;
+                } else {
+                    skillsScore = Math.min(resumeSkills.length * 2, 40);
+                }
+
+                // Experience score (0-25 points)
+                let experienceScore = 0;
+                if (requiredExperience > 0) {
+                    experienceScore = Math.min(experienceYears / requiredExperience, 1.2) * 25;
+                } else {
+                    experienceScore = Math.min(experienceYears * 3, 20);
+                }
+
+                // Education score (0-15 points)
+                const educationScore = education.length > 0 ? 15 : 0;
+
+                // Contact information score (0-10 points)
+                const contactScore = (contactInfo.emails.length > 0 ? 5 : 0) + 
+                                   (contactInfo.phones.length > 0 ? 5 : 0);
+
+                // Calculate total score
+                const totalScore = skillsScore + experienceScore + educationScore + contactScore;
+
+                // Keyword density
+                const keywordDensity = requiredSkills.length > 0 ? 
+                    this.calculateKeywordDensity(resumeText, requiredSkills) : 0;
+
+                return {
+                    totalScore: Math.round(Math.min(totalScore, 100)),
+                    skillsScore: Math.round(skillsScore),
+                    experienceScore: Math.round(experienceScore),
+                    educationScore: educationScore,
+                    contactScore: contactScore,
+                    matchedSkills: matchedSkills,
+                    missingSkills: missingSkills,
+                    allSkills: resumeSkills,
+                    experienceYears: experienceYears,
+                    education: education,
+                    contactInfo: contactInfo,
+                    keywordDensity: Math.round(keywordDensity * 100) / 100,
+                    wordCount: resumeText.split(/\s+/).length
+                };
+            }
+
+            generateRecommendations(analysisResult) {
+                const recommendations = [];
+
+                if (analysisResult.skillsScore < 25) {
+                    recommendations.push("Add more relevant technical skills to match job requirements");
+                }
+
+                if (analysisResult.experienceScore < 15) {
+                    recommendations.push("Highlight your work experience more prominently with specific years");
+                }
+
+                if (analysisResult.missingSkills.length > 0) {
+                    recommendations.push(`Consider adding these in-demand skills: ${analysisResult.missingSkills.slice(0, 5).join(', ')}`);
+                }
+
+                if (analysisResult.educationScore === 0) {
+                    recommendations.push("Include your educational background and relevant certifications");
+                }
+
+                if (analysisResult.contactInfo.emails.length === 0) {
+                    recommendations.push("Add a professional email address");
+                }
+
+                if (analysisResult.contactInfo.phones.length === 0) {
+                    recommendations.push("Include a contact phone number");
+                }
+
+                if (analysisResult.keywordDensity < 2) {
+                    recommendations.push("Increase keyword density by using more industry-specific terms");
+                }
+
+                if (analysisResult.wordCount < 200) {
+                    recommendations.push("Consider expanding your resume with more detailed descriptions");
+                }
+
+                if (recommendations.length === 0) {
+                    recommendations.push("Excellent! Your resume shows strong ATS compatibility. Consider tailoring it for specific positions.");
+                }
+
+                return recommendations;
+            }
+
+            getGrade(score) {
+                if (score >= 90) return 'A+';
+                if (score >= 80) return 'A';
+                if (score >= 70) return 'B';
+                if (score >= 60) return 'C';
+                if (score >= 50) return 'D';
+                return 'F';
+            }
+
+            getScoreMessage(score) {
+                if (score >= 90) return 'Outstanding! Your resume is highly ATS-compatible.';
+                if (score >= 80) return 'Excellent! Your resume should pass most ATS systems.';
+                if (score >= 70) return 'Good! Minor improvements could boost your ATS score.';
+                if (score >= 60) return 'Fair. Consider implementing the recommendations below.';
+                if (score >= 50) return 'Needs improvement. Focus on the key recommendations.';
+                return 'Poor. Significant improvements needed for ATS compatibility.';
+            }
+        }
+
+        // Initialize the application
+        const resumeScanner = new ResumeScanner();
+        const fileInput = document.getElementById('resumeFile');
+        const uploadButton = document.getElementById('uploadButton');
+        const resultsDiv = document.getElementById('results');
+        const loadingDiv = document.getElementById('loading');
+        const errorDiv = document.getElementById('errorMessage');
+        const successDiv = document.getElementById('successMessage');
+        const fileNameDiv = document.getElementById('fileName');
+
+        // Job requirements (can be customized)
+        const jobRequirements = {
+            skills: ['javascript', 'react', 'node.js', 'python', 'sql', 'git', 'html', 'css'],
+            experience_years: 2
+        };
+
+        // File input change handler
+        fileInput.addEventListener('change', function() {
+            const file = this.files[0];
+            if (file) {
+                const fileName = file.name;
+                const fileSize = (file.size / 1024 / 1024).toFixed(2);
+                fileNameDiv.textContent = `Selected: ${fileName} (${fileSize} MB)`;
+                fileNameDiv.style.display = 'block';
+                
+                // Hide previous messages
+                hideMessage();
+            } else {
+                fileNameDiv.style.display = 'none';
+            }
+        });
+
+        // Upload button click handler
+        uploadButton.addEventListener('click', async function() {
+            const file = fileInput.files[0];
+            
+            if (!file) {
+                showError('Please select a resume file first');
+                return;
+            }
+
+            // Validate file size (max 10MB)
+            if (file.size > 10 * 1024 * 1024) {
+                showError('File size too large. Please select a file smaller than 10MB.');
+                return;
+            }
+
+            try {
+                // Show loading state
+                setLoadingState(true);
+                hideMessage();
+
+                // Extract text from file
+                showSuccess('Extracting text from resume...');
+                const resumeText = await resumeScanner.extractTextFromFile(file);
+                
+                if (!resumeText || resumeText.trim().length < 50) {
+                    throw new Error('Unable to extract sufficient text from the resume. Please check if the file is valid and contains text.');
+                }
+
+                showSuccess('Analyzing resume content...');
+                
+                // Analyze resume
+                const analysis = resumeScanner.calculateATSScore(resumeText, jobRequirements);
+                const recommendations = resumeScanner.generateRecommendations(analysis);
+                const grade = resumeScanner.getGrade(analysis.totalScore);
+                const scoreMessage = resumeScanner.getScoreMessage(analysis.totalScore);
+
+                // Display results
+                displayResults({
+                    analysis: analysis,
+                    recommendations: recommendations,
+                    grade: grade,
+                    scoreMessage: scoreMessage
+                });
+
+                showSuccess('Analysis complete! Scroll down to see your results.');
+
+            } catch (error) {
+                console.error('Error analyzing resume:', error);
+                showError('Error analyzing resume: ' + error.message);
+            } finally {
+                setLoadingState(false);
+            }
+        });
+
+        // Helper functions
+        function setLoadingState(isLoading) {
+            uploadButton.disabled = isLoading;
+            uploadButton.textContent = isLoading ? '⏳ Analyzing...' : '🚀 Analyze Resume';
+            loadingDiv.style.display = isLoading ? 'block' : 'none';
+        }
+
+        function showError(message) {
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+            successDiv.style.display = 'none';
+        }
+
+        function showSuccess(message) {
+            successDiv.textContent = message;
+            successDiv.style.display = 'block';
+            errorDiv.style.display = 'none';
+        }
+
+        function hideMessage() {
+            errorDiv.style.display = 'none';
+            successDiv.style.display = 'none';
+        }
+
+        // Display results function
+        function displayResults(data) {
+            const { analysis, recommendations, grade, scoreMessage } = data;
+            
+            resultsDiv.innerHTML = `
+                <div class="score-header">
+                    <h2>📊 Resume Analysis Results</h2>
+                    <div class="main-score">
+                        <span class="score-number">${analysis.totalScore}</span>
+                        <span class="score-text">/100</span>
+                        <span class="grade ${grade.toLowerCase().replace('+', 'plus')}">${grade}</span>
+                    </div>
+                    <p style="margin-top: 15px; color: #666; font-size: 1.1em;">${scoreMessage}</p>
+                </div>
+                
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div class="stat-value">${analysis.matchedSkills.length}</div>
+                        <div class="stat-label">Matched Skills</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">${analysis.experienceYears}</div>
+                        <div class="stat-label">Years Experience</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">${analysis.wordCount}</div>
+                        <div class="stat-label">Total Words</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">${analysis.keywordDensity}%</div>
+                        <div class="stat-label">Keyword Density</div>
+                    </div>
+                </div>
+                
+                <div class="score-breakdown">
+                    <h3>📈 Score Breakdown</h3>
+                    <div class="score-item">
+                        <span>Skills Match:</span>
+                        <div class="score-bar">
+                            <div class="score-fill" style="width: ${(analysis.skillsScore/50)*100}%"></div>
+                        </div>
+                        <span class="score-value">${analysis.skillsScore}/50</span>
+                    </div>
+                    <div class="score-item">
+                        <span>Experience:</span>
+                        <div class="score-bar">
+                            <div class="score-fill" style="width: ${(analysis.experienceScore/25)*100}%"></div>
+                        </div>
+                        <span class="score-value">${analysis.experienceScore}/25</span>
+                    </div>
+                    <div class="score-item">
+                        <span>Education:</span>
+                        <div class="score-bar">
+                            <div class="score-fill" style="width: ${(analysis.educationScore/15)*100}%"></div>
+                        </div>
+                        <span class="score-value">${analysis.educationScore}/15</span>
+                    </div>
+                    <div class="score-item">
+                        <span>Contact Info:</span>
+                        <div class="score-bar">
+                            <div class="score-fill" style="width: ${(analysis.contactScore/10)*100}%"></div>
+                        </div>
+                        <span class="score-value">${analysis.contactScore}/10</span>
+                    </div>
+                </div>
+
+                <div class="details-grid">
+                    <div class="detail-card">
+                        <h4>✅ Matched Skills (${analysis.matchedSkills.length})</h4>
+                        <div class="skills-list">
+                            ${analysis.matchedSkills.length > 0 ? 
+                                analysis.matchedSkills.map(skill => `<span class="skill matched">${skill}</span>`).join('') :
+                                '<p style="color: #666;">No skills matched. Consider adding more relevant technical skills.</p>'
+                            }
+                        </div>
+                    </div>
+                    
+                    <div class="detail-card">
+                        <h4>❌ Missing Skills (${analysis.missingSkills.length})</h4>
+                        <div class="skills-list">
+                            ${analysis.missingSkills.length > 0 ? 
+                                analysis.missingSkills.map(skill => `<span class="skill missing">${skill}</span>`).join('') :
+                                '<p style="color: #28a745;">Great! All required skills are present.</p>'
+                            }
+                        </div>
+                    </div>
+                    
+                    <div class="detail-card">
+                        <h4>🎓 Education & Certifications</h4>
+                        <p>${analysis.education.length > 0 ? 
+                            `Found: ${analysis.education.join(', ')}` : 
+                            'No education keywords found. Consider adding your educational background.'
+                        }</p>
+                    </div>
+                    
+                    <div class="detail-card">
+                        <h4>📞 Contact Information</h4>
+                        <p><strong>Email:</strong> ${analysis.contactInfo.emails.length > 0 ? 
+                            `✅ ${analysis.contactInfo.emails.length} found` : '❌ Not found'}</p>
+                        <p><strong>Phone:</strong> ${analysis.contactInfo.phones.length > 0 ? 
+                            `✅ ${analysis.contactInfo.phones.length} found` : '❌ Not found'}</p>
+                    </div>
+                </div>
+
+                <div class="recommendations">
+                    <h3>💡 Recommendations for Improvement</h3>
+                    <ul>
+                        ${recommendations.map(rec => `<li>${rec}</li>`).join('')}
+                    </ul>
+                </div>
+            `;
+            
+            resultsDiv.style.display = 'block';
+            
+            // Smooth scroll to results
+            setTimeout(() => {
+                resultsDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 100);
+        }
+
+        // Handle drag and drop
+        const uploadSection = document.querySelector('.upload-section');
+        
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            uploadSection.addEventListener(eventName, preventDefaults, false);
+        });
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            uploadSection.addEventListener(eventName, highlight, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            uploadSection.addEventListener(eventName, unhighlight, false);
+        });
+
+        function highlight(e) {
+            uploadSection.style.background = 'rgba(255, 255, 255, 0.2)';
+        }
+
+        function unhighlight(e) {
+            uploadSection.style.background = 'rgba(255, 255, 255, 0.1)';
+        }
+
+        uploadSection.addEventListener('drop', handleDrop, false);
+
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            
+            if (files.length > 0) {
+                fileInput.files = files;
+                fileInput.dispatchEvent(new Event('change', { bubbles: true }));
+            }
+        }
+
+        // Initialize PDF.js worker
+        if (typeof pdfjsLib !== 'undefined') {
+            pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.9.179/pdf.worker.min.js';
+        }
+
+        console.log('Resume Scanner initialized successfully! 🚀');
+    </script>
+</body>
+</html>

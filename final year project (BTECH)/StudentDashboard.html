@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Dashboard</title>
+    <link rel="stylesheet" href="Studentdashboard.css">
+    <link rel="shortcut icon" href="./Black and Ivory Minimalist Monogram Logo.png" type="image/x-icon">
+</head>
+
+<body>
+    <div class="dashboard">
+        <h2>Student Dashboard</h2>
+
+        <!-- Photo Upload -->
+        <div class="photo-upload">
+            <img id="profile-pic" src="https://via.placeholder.com/100" alt="Passport Photo">
+            <input type="file" id="photo" accept="image/*" onchange="previewImage(event)">
+            <label for="photo" class="upload-label">Upload Photo</label>
+        </div>
+
+        <!-- Form Fields -->
+        <form>
+            <div class="form-group">
+                <label>First Name</label>
+                <input type="text" placeholder="Enter first name" required>
+            </div>
+            <div class="form-group">
+                <label>Middle Name</label>
+                <input type="text" placeholder="Enter middle name">
+            </div>
+            <div class="form-group">
+                <label>Last Name</label>
+                <input type="text" placeholder="Enter last name" required>
+            </div>
+            <div class="form-group">
+                <label>Email ID</label>
+                <input type="email" placeholder="Enter email" required>
+                <button type="button" class="otp-btn">Send OTP</button>
+            </div>
+            <div class="form-group">
+                <label>Contact Number</label>
+                <input type="tel" placeholder="Enter contact number" required>
+                <button type="button" class="otp-btn">Send OTP</button>
+            </div>
+            <div class="form-group">
+                <label>Class</label>
+                <input type="text" placeholder="Enter class" required>
+            </div>
+            <div class="form-group">
+                <label>College</label>
+                <input type="text" placeholder="Enter college" required>
+            </div>
+            <div class="form-group">
+                <label>ABC ID</label>
+                <input type="text" placeholder="Enter ABC ID" required>
+            </div>
+            <div class="form-group">
+                <label>Aadhaar Card Number</label>
+                <input type="text" placeholder="Enter Aadhaar number" required>
+            </div>
+            <div class="form-group">
+                <label>Parent's Contact Number</label>
+                <input type="tel" placeholder="Enter parent's contact" required>
+                <button type="button" class="otp-btn">Send OTP</button>
+            </div>
+            <div class="form-group">
+                <label>Parent's Email ID</label>
+                <input type="email" placeholder="Enter parent's email" required>
+                <button type="button" class="otp-btn">Send OTP</button>
+            </div>
+
+            <button type="submit" class="save-btn">Save</button>
+        </form>
+    </div>
+
+    <script>
+        // Preview uploaded photo
+        function previewImage(event) {
+            const reader = new FileReader();
+            reader.onload = function () {
+                document.getElementById('profile-pic').src = reader.result;
+            }
+            reader.readAsDataURL(event.target.files[0]);
+        }
+    </script>
+</body>
+
+</html>

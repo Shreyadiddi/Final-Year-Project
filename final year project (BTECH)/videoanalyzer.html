@@ -1,0 +1,1034 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Presentation Analyzer - Communication Skills Assessment</title>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .upload-section {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+        }
+
+        .upload-section h1 {
+            color: white;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+
+        .upload-section p {
+            color: rgba(255, 255, 255, 0.8);
+            margin-bottom: 20px;
+        }
+
+        .file-input-container {
+            position: relative;
+            display: inline-block;
+            margin: 20px 0;
+        }
+
+        #videoFile {
+            position: absolute;
+            left: -9999px;
+        }
+
+        .file-input-label {
+            display: inline-block;
+            padding: 12px 25px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 25px;
+            cursor: pointer;
+            color: #333;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .file-input-label:hover {
+            background: white;
+            transform: translateY(-2px);
+        }
+
+        .file-name {
+            color: white;
+            margin: 10px 0;
+            font-style: italic;
+        }
+
+        .video-preview {
+            max-width: 400px;
+            width: 100%;
+            margin: 20px auto;
+            border-radius: 15px;
+            display: none;
+        }
+
+        #analyzeButton {
+            background: linear-gradient(45deg, #00d2ff, #3a7bd5);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 18px;
+            border-radius: 25px;
+            cursor: pointer;
+            margin: 20px 0;
+            transition: transform 0.3s ease;
+            font-weight: 600;
+        }
+
+        #analyzeButton:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 210, 255, 0.4);
+        }
+
+        #analyzeButton:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .loading {
+            display: none;
+            color: white;
+            margin: 20px 0;
+        }
+
+        .spinner {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid white;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .progress-bar {
+            width: 80%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 4px;
+            margin: 20px auto;
+            overflow: hidden;
+            display: none;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #00d2ff, #3a7bd5);
+            width: 0%;
+            transition: width 0.3s ease;
+            border-radius: 4px;
+        }
+
+        .results-container {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+            display: none;
+            animation: slideIn 0.5s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .score-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .score-header h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 2.2em;
+        }
+
+        .overall-score {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 20px 0;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .score-circle {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5em;
+            font-weight: bold;
+            color: white;
+            position: relative;
+        }
+
+        .score-a { background: linear-gradient(135deg, #27ae60, #2ecc71); }
+        .score-b { background: linear-gradient(135deg, #f39c12, #e67e22); }
+        .score-c { background: linear-gradient(135deg, #e67e22, #d35400); }
+        .score-d { background: linear-gradient(135deg, #e74c3c, #c0392b); }
+        .score-f { background: linear-gradient(135deg, #c0392b, #922b21); }
+
+        .skills-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin: 30px 0;
+        }
+
+        .skill-card {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .skill-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .skill-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .skill-icon {
+            font-size: 2em;
+            margin-right: 15px;
+        }
+
+        .skill-title {
+            font-size: 1.3em;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .score-bar {
+            height: 10px;
+            background: #ecf0f1;
+            border-radius: 5px;
+            margin: 15px 0;
+            overflow: hidden;
+        }
+
+        .score-fill {
+            height: 100%;
+            border-radius: 5px;
+            transition: width 1s ease;
+        }
+
+        .score-excellent { background: linear-gradient(90deg, #27ae60, #2ecc71); }
+        .score-good { background: linear-gradient(90deg, #f39c12, #e67e22); }
+        .score-fair { background: linear-gradient(90deg, #e67e22, #d35400); }
+        .score-poor { background: linear-gradient(90deg, #e74c3c, #c0392b); }
+
+        .feedback-list {
+            list-style: none;
+        }
+
+        .feedback-list li {
+            padding: 8px 0;
+            color: #555;
+            border-bottom: 1px solid #eee;
+        }
+
+        .feedback-list li:last-child {
+            border-bottom: none;
+        }
+
+        .feedback-list li:before {
+            content: "• ";
+            color: #3498db;
+            font-weight: bold;
+            margin-right: 8px;
+        }
+
+        .recommendations {
+            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+            padding: 25px;
+            border-radius: 15px;
+            margin-top: 30px;
+            border-left: 5px solid #2196f3;
+        }
+
+        .recommendations h3 {
+            color: #1976d2;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+        }
+
+        .recommendation-item {
+            background: white;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 10px;
+            border-left: 4px solid #2196f3;
+        }
+
+        .recommendation-item h4 {
+            color: #1976d2;
+            margin-bottom: 10px;
+        }
+
+        .error-message, .success-message {
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+            display: none;
+        }
+
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            border-left: 5px solid #dc3545;
+        }
+
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            border-left: 5px solid #28a745;
+        }
+
+        .analysis-details {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 15px;
+        }
+
+        .detail-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .detail-item:last-child {
+            border-bottom: none;
+        }
+
+        .detail-label {
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .detail-value {
+            color: #6c757d;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            
+            .upload-section {
+                padding: 20px;
+            }
+            
+            .upload-section h1 {
+                font-size: 2em;
+            }
+            
+            .skills-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .overall-score {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Upload Section -->
+        <div class="upload-section">
+            <h1>🎥 Video Presentation Analyzer</h1>
+            <p>Upload your presentation video for comprehensive communication skills analysis</p>
+            <p><strong>Choose Video (MP4/AVI/MOV/WEBM):</strong></p>
+            
+            <div class="file-input-container">
+                <input type="file" id="videoFile" accept="video/*" />
+                <label for="videoFile" class="file-input-label">
+                    📁 Choose Video File
+                </label>
+            </div>
+            
+            <div class="file-name" id="fileName"></div>
+            
+            <video id="videoPreview" class="video-preview" controls>
+                Your browser does not support the video tag.
+            </video>
+            
+            <button id="analyzeButton">🚀 Analyze Presentation</button>
+            
+            <p>Your video will be analyzed for communication skills, professionalism, and presentation effectiveness.</p>
+            
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p id="loadingText">Analyzing your presentation... Please wait.</p>
+                <div class="progress-bar" id="progressBar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+            </div>
+            
+            <div class="error-message" id="errorMessage"></div>
+            <div class="success-message" id="successMessage"></div>
+        </div>
+        
+        <!-- Results Section -->
+        <div class="results-container" id="results">
+            <!-- Results will be populated here -->
+        </div>
+    </div>
+
+    <script>
+        class VideoAnalyzer {
+            constructor() {
+                this.communicationCriteria = {
+                    clarity: {
+                        weight: 0.25,
+                        keywords: ['clear', 'articulate', 'distinct', 'understandable'],
+                        negativeKeywords: ['mumble', 'unclear', 'inaudible', 'confusing']
+                    },
+                    confidence: {
+                        weight: 0.2,
+                        keywords: ['confident', 'assured', 'certain', 'positive'],
+                        negativeKeywords: ['hesitant', 'uncertain', 'nervous', 'doubtful']
+                    },
+                    engagement: {
+                        weight: 0.2,
+                        keywords: ['engaging', 'interactive', 'dynamic', 'captivating'],
+                        negativeKeywords: ['monotone', 'boring', 'flat', 'disengaged']
+                    },
+                    structure: {
+                        weight: 0.15,
+                        keywords: ['organized', 'structured', 'logical', 'coherent'],
+                        negativeKeywords: ['disorganized', 'scattered', 'confusing', 'jumbled']
+                    },
+                    professionalism: {
+                        weight: 0.2,
+                        keywords: ['professional', 'appropriate', 'formal', 'respectful'],
+                        negativeKeywords: ['unprofessional', 'inappropriate', 'casual', 'disrespectful']
+                    }
+                };
+
+                this.softSkills = [
+                    'communication', 'leadership', 'teamwork', 'problem-solving',
+                    'adaptability', 'creativity', 'time-management', 'critical-thinking',
+                    'emotional-intelligence', 'conflict-resolution'
+                ];
+
+                this.englishFluencyIndicators = [
+                    'grammar accuracy', 'vocabulary range', 'pronunciation clarity',
+                    'sentence structure', 'fluency', 'coherence'
+                ];
+            }
+
+            // Simulate video analysis (in a real implementation, this would use AI/ML APIs)
+            async analyzeVideo(file) {
+                return new Promise((resolve) => {
+                    // Simulate processing time
+                    setTimeout(() => {
+                        const analysis = this.generateAnalysis(file);
+                        resolve(analysis);
+                    }, 3000);
+                });
+            }
+
+            generateAnalysis(file) {
+                // Simulate analysis results (in production, this would come from actual video processing)
+                const duration = this.estimateVideoDuration(file);
+                const fileSize = file.size;
+                
+                // Generate realistic but simulated scores
+                const scores = {
+                    overall: this.randomScore(65, 90),
+                    clarity: this.randomScore(70, 95),
+                    confidence: this.randomScore(60, 85),
+                    engagement: this.randomScore(65, 90),
+                    structure: this.randomScore(70, 88),
+                    professionalism: this.randomScore(75, 92),
+                    englishFluency: this.randomScore(60, 90),
+                    bodyLanguage: this.randomScore(65, 85),
+                    voiceModulation: this.randomScore(70, 88)
+                };
+
+                const feedback = this.generateFeedback(scores);
+                const recommendations = this.generateRecommendations(scores);
+                const grade = this.calculateGrade(scores.overall);
+
+                return {
+                    scores,
+                    feedback,
+                    recommendations,
+                    grade,
+                    duration,
+                    fileSize: this.formatFileSize(fileSize),
+                    analysisDate: new Date().toLocaleDateString()
+                };
+            }
+
+            randomScore(min, max) {
+                return Math.floor(Math.random() * (max - min + 1)) + min;
+            }
+
+            estimateVideoDuration(file) {
+                // In a real implementation, you'd extract actual video duration
+                return "2:45"; // Placeholder
+            }
+
+            formatFileSize(bytes) {
+                const mb = (bytes / 1024 / 1024).toFixed(2);
+                return `${mb} MB`;
+            }
+
+            generateFeedback(scores) {
+                const feedback = {
+                    clarity: this.getClarityFeedback(scores.clarity),
+                    confidence: this.getConfidenceFeedback(scores.confidence),
+                    engagement: this.getEngagementFeedback(scores.engagement),
+                    structure: this.getStructureFeedback(scores.structure),
+                    professionalism: this.getProfessionalismFeedback(scores.professionalism),
+                    englishFluency: this.getEnglishFluencyFeedback(scores.englishFluency),
+                    bodyLanguage: this.getBodyLanguageFeedback(scores.bodyLanguage),
+                    voiceModulation: this.getVoiceFeedback(scores.voiceModulation)
+                };
+
+                return feedback;
+            }
+
+            getClarityFeedback(score) {
+                if (score >= 85) return ["Excellent speech clarity", "Words are well-articulated", "Easy to understand throughout"];
+                if (score >= 70) return ["Good speech clarity", "Mostly clear pronunciation", "Minor articulation improvements needed"];
+                if (score >= 55) return ["Fair speech clarity", "Some words unclear", "Focus on pronunciation"];
+                return ["Poor speech clarity", "Difficult to understand", "Significant pronunciation issues"];
+            }
+
+            getConfidenceFeedback(score) {
+                if (score >= 85) return ["Demonstrates strong confidence", "Speaks with authority", "Maintains composure well"];
+                if (score >= 70) return ["Shows good confidence", "Generally composed", "Minor nervousness detected"];
+                if (score >= 55) return ["Moderate confidence level", "Some hesitation noticed", "Build more self-assurance"];
+                return ["Low confidence evident", "Frequent hesitation", "Appears very nervous"];
+            }
+
+            getEngagementFeedback(score) {
+                if (score >= 85) return ["Highly engaging presentation", "Captivates audience attention", "Dynamic delivery style"];
+                if (score >= 70) return ["Good audience engagement", "Maintains interest well", "Mostly dynamic presentation"];
+                if (score >= 55) return ["Moderate engagement level", "Some monotonous sections", "Needs more energy"];
+                return ["Low engagement factor", "Monotonous delivery", "Lacks audience connection"];
+            }
+
+            getStructureFeedback(score) {
+                if (score >= 85) return ["Excellent organization", "Clear logical flow", "Well-structured content"];
+                if (score >= 70) return ["Good structure overall", "Mostly logical progression", "Minor organizational issues"];
+                if (score >= 55) return ["Fair organization", "Some structural confusion", "Improve content flow"];
+                return ["Poor structure", "Disorganized content", "Confusing progression"];
+            }
+
+            getProfessionalismFeedback(score) {
+                if (score >= 85) return ["Highly professional demeanor", "Appropriate language use", "Exemplary business etiquette"];
+                if (score >= 70) return ["Good professionalism", "Generally appropriate", "Minor casual moments"];
+                if (score >= 55) return ["Adequate professionalism", "Some inappropriate elements", "Maintain formal tone"];
+                return ["Lacks professionalism", "Too casual approach", "Needs significant improvement"];
+            }
+
+            getEnglishFluencyFeedback(score) {
+                if (score >= 85) return ["Excellent English fluency", "Rich vocabulary usage", "Perfect grammar structure"];
+                if (score >= 70) return ["Good English skills", "Adequate vocabulary", "Minor grammatical errors"];
+                if (score >= 55) return ["Fair English fluency", "Limited vocabulary", "Grammar needs improvement"];
+                return ["Poor English fluency", "Basic vocabulary", "Many grammatical errors"];
+            }
+
+            getBodyLanguageFeedback(score) {
+                if (score >= 85) return ["Excellent body language", "Confident posture", "Appropriate gestures"];
+                if (score >= 70) return ["Good non-verbal communication", "Mostly confident stance", "Natural gestures"];
+                if (score >= 55) return ["Adequate body language", "Some nervous habits", "Improve posture"];
+                return ["Poor body language", "Distracting movements", "Lacks confidence"];
+            }
+
+            getVoiceFeedback(score) {
+                if (score >= 85) return ["Excellent voice modulation", "Perfect pace and tone", "Great vocal variety"];
+                if (score >= 70) return ["Good voice control", "Appropriate pace", "Minor monotone sections"];
+                if (score >= 55) return ["Fair voice modulation", "Needs pace variation", "Improve tone changes"];
+                return ["Poor voice control", "Monotonous delivery", "Inappropriate pace"];
+            }
+
+            generateRecommendations(scores) {
+                const recommendations = [];
+
+                if (scores.clarity < 75) {
+                    recommendations.push({
+                        title: "Improve Speech Clarity",
+                        description: "Practice articulation exercises and speak more slowly to ensure every word is clearly understood."
+                    });
+                }
+
+                if (scores.confidence < 75) {
+                    recommendations.push({
+                        title: "Build Confidence",
+                        description: "Practice your presentation multiple times and use positive self-talk to boost confidence levels."
+                    });
+                }
+
+                if (scores.engagement < 75) {
+                    recommendations.push({
+                        title: "Enhance Audience Engagement",
+                        description: "Use more varied tones, include rhetorical questions, and incorporate storytelling techniques."
+                    });
+                }
+
+                if (scores.structure < 75) {
+                    recommendations.push({
+                        title: "Improve Content Structure",
+                        description: "Create clear outlines with introduction, main points, and conclusion. Use transition phrases effectively."
+                    });
+                }
+
+                if (scores.professionalism < 75) {
+                    recommendations.push({
+                        title: "Enhance Professionalism",
+                        description: "Use formal language, maintain appropriate attire, and avoid casual expressions in professional settings."
+                    });
+                }
+
+                if (scores.englishFluency < 75) {
+                    recommendations.push({
+                        title: "Improve English Fluency",
+                        description: "Expand vocabulary, practice grammar exercises, and consider language coaching for better fluency."
+                    });
+                }
+
+                if (scores.bodyLanguage < 75) {
+                    recommendations.push({
+                        title: "Better Body Language",
+                        description: "Practice confident postures, use purposeful gestures, and maintain good eye contact with the audience."
+                    });
+                }
+
+                if (scores.voiceModulation < 75) {
+                    recommendations.push({
+                        title: "Voice Modulation Training",
+                        description: "Practice varying your pace, tone, and volume to create more engaging and dynamic presentations."
+                    });
+                }
+
+                if (recommendations.length === 0) {
+                    recommendations.push({
+                        title: "Excellent Performance!",
+                        description: "Your presentation skills are outstanding. Continue practicing to maintain this high level of performance."
+                    });
+                }
+
+                return recommendations;
+            }
+
+            calculateGrade(score) {
+                if (score >= 90) return 'A+';
+                if (score >= 80) return 'A';
+                if (score >= 70) return 'B';
+                if (score >= 60) return 'C';
+                if (score >= 50) return 'D';
+                return 'F';
+            }
+
+            getScoreClass(score) {
+                if (score >= 80) return 'score-excellent';
+                if (score >= 70) return 'score-good';
+                if (score >= 60) return 'score-fair';
+                return 'score-poor';
+            }
+
+            getGradeClass(grade) {
+                if (grade.includes('A')) return 'score-a';
+                if (grade === 'B') return 'score-b';
+                if (grade === 'C') return 'score-c';
+                if (grade === 'D') return 'score-d';
+                return 'score-f';
+            }
+        }
+
+        // Initialize the application
+        const videoAnalyzer = new VideoAnalyzer();
+        const fileInput = document.getElementById('videoFile');
+        const analyzeButton = document.getElementById('analyzeButton');
+        const resultsDiv = document.getElementById('results');
+        const loadingDiv = document.getElementById('loading');
+        const errorDiv = document.getElementById('errorMessage');
+        const successDiv = document.getElementById('successMessage');
+        const fileNameDiv = document.getElementById('fileName');
+        const videoPreview = document.getElementById('videoPreview');
+        const progressBar = document.getElementById('progressBar');
+        const progressFill = document.getElementById('progressFill');
+        const loadingText = document.getElementById('loadingText');
+
+        // File input change handler
+        fileInput.addEventListener('change', function() {
+            const file = this.files[0];
+            if (file) {
+                const fileName = file.name;
+                const fileSize = (file.size / 1024 / 1024).toFixed(2);
+                fileNameDiv.textContent = `Selected: ${fileName} (${fileSize} MB)`;
+                fileNameDiv.style.display = 'block';
+                
+                // Show video preview
+                const fileURL = URL.createObjectURL(file);
+                videoPreview.src = fileURL;
+                videoPreview.style.display = 'block';
+                
+                hideMessage();
+            } else {
+                fileNameDiv.style.display = 'none';
+                videoPreview.style.display = 'none';
+            }
+        });
+
+        // Analyze button click handler
+        analyzeButton.addEventListener('click', async function() {
+            const file = fileInput.files[0];
+            
+            if (!file) {
+                showError('Please select a video file first');
+                return;
+            }
+
+            // Validate file type
+            if (!file.type.startsWith('video/')) {
+                showError('Please select a valid video file (MP4, AVI, MOV, WEBM)');
+                return;
+            }
+
+            // Validate file size (max 100MB)
+            if (file.size > 100 * 1024 * 1024) {
+                showError('File size too large. Please select a video smaller than 100MB.');
+                return;
+            }
+
+            try {
+                setLoadingState(true);
+                hideMessage();
+
+                // Simulate progress updates
+                simulateProgress();
+
+                // Analyze video
+                const analysis = await videoAnalyzer.analyzeVideo(file);
+
+                // Display results
+                displayResults(analysis);
+                showSuccess('Analysis complete! Your presentation has been evaluated.');
+
+            } catch (error) {
+                console.error('Error analyzing video:', error);
+                showError('Error analyzing video: ' + error.message);
+            } finally {
+                setLoadingState(false);
+            }
+        });
+
+        // Helper functions
+        function setLoadingState(isLoading) {
+            analyzeButton.disabled = isLoading;
+            analyzeButton.textContent = isLoading ? '⏳ Analyzing...' : '🚀 Analyze Presentation';
+            loadingDiv.style.display = isLoading ? 'block' : 'none';
+            progressBar.style.display = isLoading ? 'block' : 'none';
+        }
+
+        function simulateProgress() {
+            const steps = [
+                'Extracting audio from video...',
+                'Analyzing speech patterns...',
+                'Evaluating body language...',
+                'Assessing communication skills...',
+                'Generating recommendations...',
+                'Finalizing analysis...'
+            ];
+
+            let currentStep = 0;
+            const interval = setInterval(() => {
+                if (currentStep < steps.length) {
+                    loadingText.textContent = steps[currentStep];
+                    progressFill.style.width = `${((currentStep + 1) / steps.length) * 100}%`;
+                    currentStep++;
+                } else {
+                    clearInterval(interval);
+                }
+            }, 500);
+        }
+
+        function showError(message) {
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+            successDiv.style.display = 'none';
+        }
+
+        function showSuccess(message) {
+            successDiv.textContent = message;
+            successDiv.style.display = 'block';
+            errorDiv.style.display = 'none';
+        }
+
+        function hideMessage() {
+            errorDiv.style.display = 'none';
+            successDiv.style.display = 'none';
+        }
+
+        function displayResults(analysis) {
+            const { scores, feedback, recommendations, grade } = analysis;
+
+            resultsDiv.innerHTML = `
+                <div class="score-header">
+                    <h2>📊 Presentation Analysis Results</h2>
+                    <div class="overall-score">
+                        <div class="score-circle ${videoAnalyzer.getGradeClass(grade)}">
+                            ${scores.overall}
+                        </div>
+                        <div>
+                            <h3>Overall Grade: ${grade}</h3>
+                            <p>Your presentation performance score</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="analysis-details">
+                    <h3>📋 Analysis Summary</h3>
+                    <div class="detail-item">
+                        <span class="detail-label">Video Duration:</span>
+                        <span class="detail-value">${analysis.duration}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">File Size:</span>
+                        <span class="detail-value">${analysis.fileSize}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Analysis Date:</span>
+                        <span class="detail-value">${analysis.analysisDate}</span>
+                    </div>
+                </div>
+
+                <div class="skills-grid">
+                    <div class="skill-card">
+                        <div class="skill-header">
+                            <span class="skill-icon">🗣️</span>
+                            <span class="skill-title">Speech Clarity</span>
+                        </div>
+                        <div class="score-bar">
+                            <div class="score-fill ${videoAnalyzer.getScoreClass(scores.clarity)}" 
+                                 style="width: ${scores.clarity}%"></div>
+                        </div>
+                        <div><strong>${scores.clarity}/100</strong></div>
+                        <ul class="feedback-list">
+                            ${feedback.clarity.map(item => `<li>${item}</li>`).join('')}
+                        </ul>
+                    </div>
+
+                    <div class="skill-card">
+                        <div class="skill-header">
+                            <span class="skill-icon">💪</span>
+                            <span class="skill-title">Confidence Level</span>
+                        </div>
+                        <div class="score-bar">
+                            <div class="score-fill ${videoAnalyzer.getScoreClass(scores.confidence)}" 
+                                 style="width: ${scores.confidence}%"></div>
+                        </div>
+                        <div><strong>${scores.confidence}/100</strong></div>
+                        <ul class="feedback-list">
+                            ${feedback.confidence.map(item => `<li>${item}</li>`).join('')}
+                        </ul>
+                    </div>
+
+                    <div class="skill-card">
+                        <div class="skill-header">
+                            <span class="skill-icon">🎯</span>
+                            <span class="skill-title">Audience Engagement</span>
+                        </div>
+                        <div class="score-bar">
+                            <div class="score-fill ${videoAnalyzer.getScoreClass(scores.engagement)}" 
+                                 style="width: ${scores.engagement}%"></div>
+                        </div>
+                        <div><strong>${scores.engagement}/100</strong></div>
+                        <ul class="feedback-list">
+                            ${feedback.engagement.map(item => `<li>${item}</li>`).join('')}
+                        </ul>
+                    </div>
+
+                    <div class="skill-card">
+                        <div class="skill-header">
+                            <span class="skill-icon">🏗️</span>
+                            <span class="skill-title">Content Structure</span>
+                        </div>
+                        <div class="score-bar">
+                            <div class="score-fill ${videoAnalyzer.getScoreClass(scores.structure)}" 
+                                 style="width: ${scores.structure}%"></div>
+                        </div>
+                        <div><strong>${scores.structure}/100</strong></div>
+                        <ul class="feedback-list">
+                            ${feedback.structure.map(item => `<li>${item}</li>`).join('')}
+                        </ul>
+                    </div>
+
+                    <div class="skill-card">
+                        <div class="skill-header">
+                            <span class="skill-icon">👔</span>
+                            <span class="skill-title">Professionalism</span>
+                        </div>
+                        <div class="score-bar">
+                            <div class="score-fill ${videoAnalyzer.getScoreClass(scores.professionalism)}" 
+                                 style="width: ${scores.professionalism}%"></div>
+                        </div>
+                        <div><strong>${scores.professionalism}/100</strong></div>
+                        <ul class="feedback-list">
+                            ${feedback.professionalism.map(item => `<li>${item}</li>`).join('')}
+                        </ul>
+                    </div>
+
+                    <div class="skill-card">
+                        <div class="skill-header">
+                            <span class="skill-icon">🇬🇧</span>
+                            <span class="skill-title">English Fluency</span>
+                        </div>
+                        <div class="score-bar">
+                            <div class="score-fill ${videoAnalyzer.getScoreClass(scores.englishFluency)}" 
+                                 style="width: ${scores.englishFluency}%"></div>
+                        </div>
+                        <div><strong>${scores.englishFluency}/100</strong></div>
+                        <ul class="feedback-list">
+                            ${feedback.englishFluency.map(item => `<li>${item}</li>`).join('')}
+                        </ul>
+                    </div>
+
+                    <div class="skill-card">
+                        <div class="skill-header">
+                            <span class="skill-icon">🤝</span>
+                            <span class="skill-title">Body Language</span>
+                        </div>
+                        <div class="score-bar">
+                            <div class="score-fill ${videoAnalyzer.getScoreClass(scores.bodyLanguage)}" 
+                                 style="width: ${scores.bodyLanguage}%"></div>
+                        </div>
+                        <div><strong>${scores.bodyLanguage}/100</strong></div>
+                        <ul class="feedback-list">
+                            ${feedback.bodyLanguage.map(item => `<li>${item}</li>`).join('')}
+                        </ul>
+                    </div>
+
+                    <div class="skill-card">
+                        <div class="skill-header">
+                            <span class="skill-icon">🎤</span>
+                            <span class="skill-title">Voice Modulation</span>
+                        </div>
+                        <div class="score-bar">
+                            <div class="score-fill ${videoAnalyzer.getScoreClass(scores.voiceModulation)}" 
+                                 style="width: ${scores.voiceModulation}%"></div>
+                        </div>
+                        <div><strong>${scores.voiceModulation}/100</strong></div>
+                        <ul class="feedback-list">
+                            ${feedback.voiceModulation.map(item => `<li>${item}</li>`).join('')}
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="recommendations">
+                    <h3>💡 Personalized Recommendations</h3>
+                    ${recommendations.map(rec => `
+                        <div class="recommendation-item">
+                            <h4>${rec.title}</h4>
+                            <p>${rec.description}</p>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+
+            resultsDiv.style.display = 'block';
+            
+            setTimeout(() => {
+                resultsDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 100);
+        }
+
+        // Drag and drop functionality
+        const uploadSection = document.querySelector('.upload-section');
+        
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            uploadSection.addEventListener(eventName, preventDefaults, false);
+        });
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            uploadSection.addEventListener(eventName, highlight, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            uploadSection.addEventListener(eventName, unhighlight, false);
+        });
+
+        function highlight(e) {
+            uploadSection.style.background = 'rgba(255, 255, 255, 0.2)';
+        }
+
+        function unhighlight(e) {
+            uploadSection.style.background = 'rgba(255, 255, 255, 0.1)';
+        }
+
+        uploadSection.addEventListener('drop', handleDrop, false);
+
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            
+            if (files.length > 0 && files[0].type.startsWith('video/')) {
+                fileInput.files = files;
+                fileInput.dispatchEvent(new Event('change', { bubbles: true }));
+            }
+        }
+
+        console.log('Video Presentation Analyzer initialized successfully! 🎥');
+    </script>
+</body>
+</html>

@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Teacher Dashboard</title>
+  <link rel="stylesheet" href="Teacherdashboard.css">
+</head>
+<body>
+  <div class="dashboard-container">
+    <div class="header">
+         <h2>Teacher Dashboard</h2>
+      <div class="photo-upload">
+        <img id="profile-pic" src="https://via.placeholder.com/100" alt="Passport Photo" class="profile-pic">
+        <input type="file" id="photo" accept="image/*" onchange="previewImage(event)">
+        <label for="photo" class="upload-label"></label>
+      </div>
+    </div>
+
+    <form class="teacher-form">
+      <div class="form-group">
+        <label for="fname">First Name:</label>
+        <input type="text" id="fname" name="fname" required>
+      </div>
+
+      <div class="form-group">
+        <label for="mname">Middle Name:</label>
+        <input type="text" id="mname" name="mname">
+      </div>
+
+      <div class="form-group">
+        <label for="lname">Last Name:</label>
+        <input type="text" id="lname" name="lname" required>
+      </div>
+
+      <div class="form-group">
+        <label for="email">Email ID:</label>
+        <input type="email" id="email" name="email" required>
+      </div>
+
+      <div class="form-group">
+        <label for="contact">Contact Number:</label>
+        <input type="tel" id="contact" name="contact" required>
+      </div>
+
+      <div class="form-group">
+        <label for="dept">Department:</label>
+        <input type="text" id="dept" name="dept" required>
+      </div>
+
+      <div class="form-group">
+        <label for="college">College:</label>
+        <input type="text" id="college" name="college" required>
+      </div>
+
+      <div class="form-group">
+        <label for="experience">Years of Experience:</label>
+        <input type="number" id="experience" name="experience" required>
+      </div>
+
+      <div class="form-group">
+        <label for="subject">Specialization/Subject:</label>
+        <input type="text" id="subject" name="subject" required>
+      </div>
+
+      <div class="form-group">
+        <label for="resume">Upload Resume (PDF/DOC):</label>
+        <input type="file" id="resume" name="resume" accept=".pdf,.doc,.docx">
+      </div>
+
+      <button type="submit" class="save-btn">Save</button>
+    </form>
+  </div>
+
+  <script>
+    function previewImage(event) {
+      const reader = new FileReader();
+      reader.onload = function () {
+        document.getElementById("profile-pic").src = reader.result;
+      };
+      reader.readAsDataURL(event.target.files[0]);
+    }
+  </script>
+</body>
+</html>
